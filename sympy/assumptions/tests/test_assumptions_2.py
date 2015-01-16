@@ -61,5 +61,32 @@ def test_composite_predicates():
 
 
 def test_sqrt_rational():
+    """
+    (sympy)pzrq@Peters-Mini-2:~/Projects/sympy$ ipython
+    Python 2.7.6 (default, Sep  9 2014, 15:04:36)
+    Type "copyright", "credits" or "license" for more information.
+
+    IPython 2.3.1 -- An enhanced Interactive Python.
+    ?         -> Introduction and overview of IPython's features.
+    %quickref -> Quick reference.
+    help      -> Python's own help system.
+    object?   -> Details about 'object', use 'object??' for extra details.
+
+    In [1]: import os
+
+    In [2]: os.environ['SYMPY_USE_CACHE'] = 'no'
+
+    In [3]: import sympy
+
+    In [4]: sympy.test('sympy/assumptions/tests/test_assumptions_2')
+
+    ... <lots of output>
+
+    RuntimeError: maximum recursion depth exceeded in __instancecheck__
+
+    =============================== tests finished: 5 passed, 1 exceptions, in 0.03 seconds ===============================
+    DO *NOT* COMMIT!
+    Out[4]: False
+    """
     expr = Pow(Symbol('x'), S.Half)
     assert expr.is_rational is None
