@@ -5,6 +5,9 @@ from sympy.abc import x, y
 from sympy.assumptions.assume import global_assumptions, Predicate
 from sympy.assumptions.ask import _extract_facts, Q
 from sympy.core import symbols
+from sympy.core.power import Pow
+from sympy.core.singleton import S
+from sympy.core.symbol import Symbol
 from sympy.logic.boolalg import Or
 from sympy.printing import pretty
 
@@ -55,3 +58,8 @@ def test_composite_predicates():
     pred = Q.integer | ~Q.positive
     assert type(pred(x)) is Or
     assert pred(x) == Q.integer(x) | ~Q.positive(x)
+
+
+def test_sqrt_rational():
+    expr = Pow(Symbol('x'), S.Half)
+    assert expr.is_rational is None
