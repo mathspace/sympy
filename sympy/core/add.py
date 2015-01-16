@@ -465,14 +465,31 @@ class Add(Expr, AssocOp):
         a.is_commutative for a in self.args)
 
     def _eval_is_imaginary(self):
+        # ret = _fuzzy_group(a.is_imaginary for a in self.args)
+        # if not ret:
+        #     return ret
+        # newarg = []
+        # from sympy import im
+        # for a in self.args:
+        #     t = im(a)
+        #     if t.is_positive:
+        #         newarg.append(t)
+        #     elif t.is_negative:
+        #         newarg.append(t)
+        #     else:
+        #         return
+        # i = self.func(*newarg)
+        # if i.is_zero is False:
+        #     return True
+
         rv = _fuzzy_group(a.is_imaginary for a in self.args)
         if rv is False:
             return rv
         iargs = [a*S.ImaginaryUnit for a in self.args]
         r = _fuzzy_group(a.is_real for a in iargs)
-        if r:
-            s = self.func(*iargs, evaluate=False)
-            return fuzzy_not(s.is_zero)
+        # if r:
+        #     s = self.func(*iargs, evaluate=False)
+        #     return fuzzy_not(s.is_zero)
 
     def _eval_is_odd(self):
         l = [f for f in self.args if not (f.is_even is True)]
