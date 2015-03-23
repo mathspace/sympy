@@ -88,6 +88,22 @@ def test_roots_quartic():
     raises(PolynomialError, lambda: roots_quartic(Poly(y*x**4 + x + z, x)))
 
 
+def test_filter_roots_regression():
+    expected1 = ['-0.3945 + 1.927*I', '-0.3945 - 1.927*I',
+                 '-1.128', '0.9169']
+    expected2 = ['-1.128', '0.9169']
+    approximate = lambda r: sorted([str(_root.evalf(4)) for _root in r])
+
+    poly_func = Poly(x**4 + x**3 + 3*x**2 - 4)
+    all_roots = roots(poly_func)
+    assert len(all_roots) == 4
+    assert expected1 == approximate(all_roots)
+
+    # Turns out we do still find the roots, we just can't filter them correctly
+    real_roots = roots(poly_func, filter='R')
+    assert expected2 == approximate(real_roots)
+
+
 def test_roots_cyclotomic():
     assert roots_cyclotomic(cyclotomic_poly(1, x, polys=True)) == [1]
     assert roots_cyclotomic(cyclotomic_poly(2, x, polys=True)) == [-1]
