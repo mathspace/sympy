@@ -15,13 +15,19 @@ License: New BSD License (see the LICENSE file for details) covers all files
 in the sympy repository unless stated otherwise.
 
 Our mailing list is at
-https://groups.google.com/forum/?fromgroups#!forum/sympy.  We are also on IRC
-(`#sympy on Freenode <irc://irc.freenode.net/sympy>`_, note, this channel is
-`logged <http://colabti.org/irclogger/irclogger_logs/sympy>`_).  Feel free to
-ask us anything there. We have a very welcoming and helpful community.
+https://groups.google.com/forum/?fromgroups#!forum/sympy.
+
+We have community chat at `Gitter <https://gitter.im/sympy/sympy>`_. Feel free
+to ask us anything there. We have a very welcoming and helpful community.
 
 Download
 --------
+
+.. image:: https://pypip.in/v/sympy/badge.png
+    :target: https://pypi.python.org/pypi/sympy
+
+.. image:: https://pypip.in/d/sympy/badge.png
+    :target: https://pypi.python.org/pypi/sympy
 
 Get the latest version of SymPy from
 https://pypi.python.org/pypi/sympy/
@@ -32,7 +38,7 @@ To get the git version do
 
     $ git clone git://github.com/sympy/sympy.git
 
-For other options (tarballs, debs, etc.), see See
+For other options (tarballs, debs, etc.), see
 http://docs.sympy.org/dev/install.html.
 
 Documentation and usage
@@ -75,7 +81,13 @@ if SymPy is installed.
 Installation
 ------------
 
-To install SymPy, simply run::
+SymPy has a hard dependency on the `mpmath <http://mpmath.org/>`
+library (version >= 0.19).  You should install it first, please refer to
+the mpmath installation guide:
+
+https://github.com/fredrik-johansson/mpmath#1-download--installation
+
+To install SymPy itself, then simply run::
 
     $ python setup.py install
 
@@ -140,11 +152,11 @@ diff``, ``git clean -Xn`` and ``git clean -n`` before doing any of those.
 Bugs
 ----
 
-Our issue tracker is at https://code.google.com/p/sympy/issues/list.  Please
-report any bugs that you find.  Or, even better, fork the repository on GitHub
-and create a pull request.  We welcome all changes, big or small, and we will
-help you make the pull request if you are new to git (just ask on our mailing
-list or IRC).
+Our issue tracker is at https://github.com/sympy/sympy/issues.  Please report
+any bugs that you find.  Or, even better, fork the repository on GitHub and
+create a pull request.  We welcome all changes, big or small, and we will help
+you make the pull request if you are new to git (just ask on our mailing list
+or Gitter).
 
 Brief History
 -------------
@@ -193,7 +205,7 @@ Citation
 
 To cite SymPy in publications use::
 
-    SymPy Development Team (2013). SymPy: Python library for symbolic mathematics
+    SymPy Development Team (2014). SymPy: Python library for symbolic mathematics
     URL http://www.sympy.org.
 
 A BibTeX entry for LaTeX users is::
@@ -201,7 +213,7 @@ A BibTeX entry for LaTeX users is::
     @Manual{,
     title = {SymPy: Python library for symbolic mathematics},
     author = {{SymPy Development Team}},
-    year = {2013},
+    year = {2014},
     url = {http://www.sympy.org},
     }
 

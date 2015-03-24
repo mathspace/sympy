@@ -1,6 +1,7 @@
 from sympy import Eq, factorial, Function, Lambda, rf, S, sqrt, symbols, I, expand_func, binomial, gamma
 from sympy.solvers.recurr import rsolve, rsolve_hyper, rsolve_poly, rsolve_ratio
 from sympy.utilities.pytest import raises
+from sympy.core.compatibility import range
 from sympy.abc import a, b, c
 
 y = Function('y')
@@ -91,6 +92,7 @@ def test_rsolve_bulk():
             q = recurrence_term(c, p)
             if p.is_polynomial(n):
                 assert rsolve_poly(c, q, n) == p
+            # See issue 3956:
             #if p.is_hypergeometric(n):
             #    assert rsolve_hyper(c, q, n) == p
 
@@ -192,7 +194,7 @@ def test_rsolve_raises():
     raises(ValueError, lambda: rsolve(y(n) - y(n + 1), y(n), {x(0): 0}))
 
 
-def test_issue_3745():
+def test_issue_6844():
     f = y(n + 2) - y(n + 1) + y(n)/4
     assert rsolve(f, y(n)) == 2**(-n)*(C0 + C1*n)
     assert rsolve(f, y(n), {y(0): 0, y(1): 1}) == 2*2**(-n)*n

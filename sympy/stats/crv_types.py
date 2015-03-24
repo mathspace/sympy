@@ -41,15 +41,14 @@ WignerSemicircle
 
 from __future__ import print_function, division
 
-from sympy import (exp, log, sqrt, pi, S, Dummy, Interval, S, sympify, gamma,
+from sympy import (log, sqrt, pi, S, Dummy, Interval, sympify, gamma,
                    Piecewise, And, Eq, binomial, factorial, Sum, floor, Abs,
-                   Symbol, log, besseli, Lambda, Basic)
+                   Lambda, Basic)
 from sympy import beta as beta_fn
 from sympy import cos, exp, besseli
 from sympy.stats.crv import (SingleContinuousPSpace, SingleContinuousDistribution,
         ContinuousDistributionHandmade)
 from sympy.stats.rv import _value_check
-from sympy.core.decorators import _sympifyit
 import random
 
 oo = S.Infinity
@@ -312,7 +311,7 @@ def Beta(name, alpha, beta):
     ========
 
     >>> from sympy.stats import Beta, density, E, variance
-    >>> from sympy import Symbol, simplify, pprint
+    >>> from sympy import Symbol, simplify, pprint, expand_func
 
     >>> alpha = Symbol("alpha", positive=True)
     >>> beta = Symbol("beta", positive=True)
@@ -323,11 +322,11 @@ def Beta(name, alpha, beta):
     >>> D = density(X)(z)
     >>> pprint(D, use_unicode=False)
      alpha - 1         beta - 1
-    z         *(-z + 1)        *gamma(alpha + beta)
-    -----------------------------------------------
-                gamma(alpha)*gamma(beta)
+    z         *(-z + 1)
+    ---------------------------
+         beta(alpha, beta)
 
-    >>> simplify(E(X, meijerg=True))
+    >>> expand_func(simplify(E(X, meijerg=True)))
     alpha/(alpha + beta)
 
     >>> simplify(variance(X, meijerg=True))  #doctest: +SKIP
@@ -393,9 +392,9 @@ def BetaPrime(name, alpha, beta):
     >>> D = density(X)(z)
     >>> pprint(D, use_unicode=False)
      alpha - 1        -alpha - beta
-    z         *(z + 1)             *gamma(alpha + beta)
-    ---------------------------------------------------
-                  gamma(alpha)*gamma(beta)
+    z         *(z + 1)
+    -------------------------------
+           beta(alpha, beta)
 
     References
     ==========
@@ -915,13 +914,12 @@ def FDistribution(name, d1, d2):
     >>> pprint(D, use_unicode=False)
       d2
       --    ______________________________
-      2    /       d1            -d1 - d2       /d1   d2\
-    d2  *\/  (d1*z)  *(d1*z + d2)         *gamma|-- + --|
-                                                \2    2 /
-    -----------------------------------------------------
-                           /d1\      /d2\
-                    z*gamma|--|*gamma|--|
-                           \2 /      \2 /
+      2    /       d1            -d1 - d2
+    d2  *\/  (d1*z)  *(d1*z + d2)
+    --------------------------------------
+                      /d1  d2\
+                z*beta|--, --|
+                      \2   2 /
 
     References
     ==========
@@ -984,13 +982,12 @@ def FisherZ(name, d1, d2):
                                 d1   d2
         d1   d2               - -- - --
         --   --                 2    2
-        2    2  /    2*z     \           d1*z      /d1   d2\
-    2*d1  *d2  *\d1*e    + d2/         *e    *gamma|-- + --|
-                                                   \2    2 /
-    --------------------------------------------------------
-                           /d1\      /d2\
-                      gamma|--|*gamma|--|
-                           \2 /      \2 /
+        2    2  /    2*z     \           d1*z
+    2*d1  *d2  *\d1*e    + d2/         *e
+    -----------------------------------------
+                       /d1  d2\
+                   beta|--, --|
+                       \2   2 /
 
     References
     ==========
@@ -1339,7 +1336,7 @@ def Laplace(name, mu, b):
     >>> X = Laplace("x", mu, b)
 
     >>> density(X)(z)
-    exp(-Abs(-mu + z)/b)/(2*b)
+    exp(-Abs(mu - z)/b)/(2*b)
 
     References
     ==========
@@ -2036,17 +2033,17 @@ def StudentT(name, nu):
 
     >>> D = density(X)(z)
     >>> pprint(D, use_unicode=False)
-              nu   1
-            - -- - -
-              2    2
-    /     2\
-    |    z |              /nu   1\
-    |1 + --|        *gamma|-- + -|
-    \    nu/              \2    2/
-    ------------------------------
-         ____   ____      /nu\
-       \/ pi *\/ nu *gamma|--|
-                          \2 /
+                nu   1
+              - -- - -
+                2    2
+      /     2\
+      |    z |
+      |1 + --|
+      \    nu/
+    --------------------
+      ____     /     nu\
+    \/ nu *beta|1/2, --|
+               \     2 /
 
     References
     ==========
@@ -2152,10 +2149,13 @@ class UniformDistribution(SingleContinuousDistribution):
 
     def compute_cdf(self, **kwargs):
         from sympy import Lambda, Min
-        z = Dummy('z', real=True, bounded=True)
-        result = SingleContinuousDistribution.compute_cdf(self, **kwargs)
-        result = result(z).subs({Min(z, self.right): z,
-                                 Min(z, self.left, self.right): self.left})
+        z = Dummy('z', real=True, finite=True)
+        result = SingleContinuousDistribution.compute_cdf(self, **kwargs)(z)
+        reps = {
+            Min(z, self.right): z,
+            Min(z, self.left, self.right): self.left,
+            Min(z, self.left): self.left}
+        result = result.subs(reps)
         return Lambda(z, result)
 
     def expectation(self, expr, var, **kwargs):
@@ -2210,7 +2210,7 @@ def Uniform(name, left, right):
     >>> density(X)(z)
     Piecewise((1/(-a + b), And(a <= z, z <= b)), (0, True))
 
-    >>> cdf(X)(z)
+    >>> cdf(X)(z)  # doctest: +SKIP
     -a/(-a + b) + z/(-a + b)
 
     >>> simplify(E(X))
