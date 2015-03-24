@@ -1,8 +1,10 @@
 from __future__ import division
 
-from sympy import (Basic, Symbol, sin, cos, exp, sqrt, Rational, Float, re, pi,
-        sympify, Add, Mul, Pow, Mod, I, log, S, Max, symbols, oo, Integer,
-        sign, im, nan, Dummy, factorial, comp
+from sympy import (
+    Basic, Symbol, sin, cos, tan,
+    exp, sqrt, Rational, Float, re, pi,
+    sympify, Add, Mul, Pow, Mod, I, log, S, Max, symbols, oo, Integer,
+    sign, im, nan, Dummy, factorial, comp
 )
 from sympy.core.compatibility import long, range
 from sympy.utilities.iterables import cartes
@@ -806,10 +808,13 @@ def test_Add_is_negative_positive():
     assert (n + x).is_positive is None
     assert (n + x - k).is_positive is None
 
+    # As the assumptions engine often relies on evalf(), these come out as
+    # too close to S.Zero to say whether they actually are positive or negative
     z = (-3 - sqrt(5) + (-sqrt(10)/2 - sqrt(2)/2)**2)
-    assert z.is_zero
+    assert z.is_zero is None
     z = sqrt(1 + sqrt(3)) + sqrt(3 + 3*sqrt(3)) - sqrt(10 + 6*sqrt(3))
-    assert z.is_zero
+    assert z.is_zero is None
+
 
 def test_Add_is_nonpositive_nonnegative():
     x = Symbol('x', real=True)
@@ -1814,19 +1819,23 @@ def test_mul_zero_detection():
 
 
 def test_issue_8247_8354():
-    from sympy import tan
     z = sqrt(1 + sqrt(3)) + sqrt(3 + 3*sqrt(3)) - sqrt(10 + 6*sqrt(3))
-    assert z.is_positive is False  # it's 0
+    # As the assumptions engine often relies on evalf(), these come out as
+    # too close to S.Zero to say whether they actually are positive or negative
+    assert z.is_positive is None  # it's 0
+    assert z.is_negative is None  # it's 0
     z = S('''-2**(1/3)*(3*sqrt(93) + 29)**2 - 4*(3*sqrt(93) + 29)**(4/3) +
         12*sqrt(93)*(3*sqrt(93) + 29)**(1/3) + 116*(3*sqrt(93) + 29)**(1/3) +
         174*2**(1/3)*sqrt(93) + 1678*2**(1/3)''')
-    assert z.is_positive is False  # it's 0
+    assert z.is_positive is None  # it's 0
+    assert z.is_negative is None  # it's 0
     z = 2*(-3*tan(19*pi/90) + sqrt(3))*cos(11*pi/90)*cos(19*pi/90) - \
         sqrt(3)*(-3 + 4*cos(19*pi/90)**2)
-    assert z.is_positive is not True  # it's zero and it shouldn't hang
+    assert z.is_positive is None  # it's zero and it shouldn't hang
+    assert z.is_negative is None  # it's zero and it shouldn't hang
     z = S('''9*(3*sqrt(93) + 29)**(2/3)*((3*sqrt(93) +
         29)**(1/3)*(-2**(2/3)*(3*sqrt(93) + 29)**(1/3) - 2) - 2*2**(1/3))**3 +
         72*(3*sqrt(93) + 29)**(2/3)*(81*sqrt(93) + 783) + (162*sqrt(93) +
         1566)*((3*sqrt(93) + 29)**(1/3)*(-2**(2/3)*(3*sqrt(93) + 29)**(1/3) -
         2) - 2*2**(1/3))**2''')
-    assert z.is_positive is False  # it's 0 (and a single _mexpand isn't enough)
+    assert z.is_positive is None  # it's 0 (and a single _mexpand isn't enough)

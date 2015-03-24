@@ -720,7 +720,7 @@ class Expr(Basic, EvalfMixin):
                 return False
             try:
                 # check to see that we can get a value
-                n2 = self._eval_evalf(2)
+                n2 = self.evalf(2)
                 if n2 is None:
                     raise AttributeError
                 if n2._prec == 1:  # no significance
@@ -729,7 +729,7 @@ class Expr(Basic, EvalfMixin):
                     raise AttributeError
             except (AttributeError, ValueError):
                 return None
-            n, i = self.evalf(2).as_real_imag()
+            n, i = n2.as_real_imag()
             if not i.is_Number or not n.is_Number:
                 return False
             if n._prec != 1 and i._prec != 1:
