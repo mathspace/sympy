@@ -31,16 +31,16 @@ from sympy.core.function import Lambda
 from sympy.core.numbers import ilcm, oo
 from sympy.core.mul import Mul
 from sympy.core.power import Pow
-from sympy.core.relational import Eq, Ne
+from sympy.core.relational import Eq
 from sympy.core.singleton import S
 from sympy.core.symbol import Symbol, Dummy
-from sympy.core.compatibility import reduce, ordered, xrange
+from sympy.core.compatibility import reduce, ordered, range
 from sympy.integrals.heurisch import _symbols
 
 from sympy.functions import (acos, acot, asin, atan, cos, cot, exp, log,
     Piecewise, sin, tan)
 
-from sympy.functions import sinh, cosh, tanh, coth, asinh, acosh , atanh , acoth
+from sympy.functions import sinh, cosh, tanh, coth
 from sympy.integrals import Integral, integrate
 
 from sympy.polys import gcd, cancel, PolynomialError, Poly, reduced, RootSum, DomainError
@@ -735,7 +735,7 @@ def as_poly_1t(p, t, z):
     In other words, z == 1/t will be a dummy variable that Poly can handle
     better.
 
-    See issue 2032.
+    See issue 5131.
 
     Examples
     ========
@@ -765,7 +765,7 @@ def as_poly_1t(p, t, z):
     try:
         t_part = t_part.to_field().exquo(pd)
     except DomainError as e:
-        # Issue 1851
+        # issue 4950
         raise NotImplementedError(e)
     # Compute the negative degree parts.
     one_t_part = Poly.from_list(reversed(one_t_part.rep.rep), *one_t_part.gens,
@@ -1358,7 +1358,7 @@ def integrate_hyperexponential_polynomial(p, DE, z):
         return(qa, qd, b)
 
     with DecrementLevel(DE):
-        for i in xrange(-p.degree(z), p.degree(t1) + 1):
+        for i in range(-p.degree(z), p.degree(t1) + 1):
             if not i:
                 continue
             elif i < 0:
@@ -1573,7 +1573,7 @@ def risch_integrate(f, x, extension=None, handle_first='log',
 
     handle_first may be either 'exp' or 'log'.  This changes the order in
     which the extension is built, and may result in a different (but
-    equivalent) solution (for an example of this, see issue 2010).  It is also
+    equivalent) solution (for an example of this, see issue 5109).  It is also
     possible that the integral may be computed with one but not the other,
     because not all cases have been implemented yet.  It defaults to 'log' so
     that the outer extension is exponential when possible, because more of the
@@ -1588,6 +1588,7 @@ def risch_integrate(f, x, extension=None, handle_first='log',
 
     Examples
     ========
+
     >>> from sympy.integrals.risch import risch_integrate
     >>> from sympy import exp, log, pprint
     >>> from sympy.abc import x

@@ -2,8 +2,9 @@ from __future__ import print_function, division
 
 from functools import wraps
 
-from sympy.core import S, Symbol, sympify, Tuple, Integer, Basic, Expr
+from sympy.core import S, Symbol, Tuple, Integer, Basic, Expr
 from sympy.core.decorators import call_highest_priority
+from sympy.core.compatibility import range
 from sympy.core.sympify import SympifyError, sympify
 from sympy.functions import conjugate, adjoint
 from sympy.matrices import ShapeError
@@ -62,8 +63,12 @@ class MatrixExpr(Basic):
 
     is_commutative = False
 
-    # The following is adapted from the core Expr object
 
+    def __new__(cls, *args, **kwargs):
+        args = map(sympify, args)
+        return Basic.__new__(cls, *args, **kwargs)
+
+    # The following is adapted from the core Expr object
     def __neg__(self):
         return MatMul(S.NegativeOne, self).doit()
 
@@ -196,8 +201,8 @@ class MatrixExpr(Basic):
         def is_valid(idx):
             return isinstance(idx, (int, Integer, Symbol, Expr))
         return (is_valid(i) and is_valid(j) and
-                (0 <= i) is not False and (i < self.rows) is not False and
-                (0 <= j) is not False and (j < self.cols) is not False)
+                (0 <= i) != False and (i < self.rows) != False and
+                (0 <= j) != False and (j < self.cols) != False)
 
     def __getitem__(self, key):
         if not isinstance(key, tuple) and isinstance(key, slice):
@@ -209,10 +214,26 @@ class MatrixExpr(Basic):
                 from sympy.matrices.expressions.slice import MatrixSlice
                 return MatrixSlice(self, i, j)
             i, j = sympify(i), sympify(j)
-            if self.valid_index(i, j) is not False:
+            if self.valid_index(i, j) != False:
                 return self._entry(i, j)
             else:
                 raise IndexError("Invalid indices (%s, %s)" % (i, j))
+        elif isinstance(key, (int, Integer)):
+            # row-wise decomposition of matrix
+            rows, cols = self.shape
+            if not (isinstance(rows, Integer) and isinstance(cols, Integer)):
+                raise IndexError("Single index only supported for "
+                                 "non-symbolic matrix shapes.")
+            key = sympify(key)
+            i = key // cols
+            j = key % cols
+            if self.valid_index(i, j) != False:
+                return self._entry(i, j)
+            else:
+                raise IndexError("Invalid index %s" % key)
+        elif isinstance(key, (Symbol, Expr)):
+                raise IndexError("Single index only supported for "
+                                 "non-symbolic indices.")
         raise IndexError("Invalid index, wanted %s[i,j]" % self)
 
     def as_explicit(self):
@@ -300,6 +321,14 @@ class MatrixElement(Expr):
     i = property(lambda self: self.args[1])
     j = property(lambda self: self.args[2])
     _diff_wrt = True
+
+    def doit(self, **kwargs):
+        deep = kwargs.get('deep', True)
+        if deep:
+            args = [arg.doit(**kwargs) for arg in self.args]
+        else:
+            args = self.args
+        return args[0][args[1], args[2]]
 
 
 class MatrixSymbol(MatrixExpr):

@@ -292,8 +292,6 @@ CNOT   \n\
     assert upretty(g3) == ucode_str
     assert latex(g3) == r'CNOT_{1,0}'
     sT(g3, "CNotGate(Integer(1),Integer(0))")
-    # str(g4) Fails
-    #assert str(g4) == ''
     ascii_str = \
 """\
 U \n\
@@ -304,6 +302,12 @@ u("""\
 U \n\
  0\
 """)
+    assert str(g4) == \
+"""\
+U((0,),Matrix([\n\
+[a, b],\n\
+[c, d]]))\
+"""
     assert pretty(g4) == ascii_str
     assert upretty(g4) == ucode_str
     assert latex(g4) == r'U_{0}'
@@ -354,7 +358,7 @@ L \
     assert pretty(h4) == ascii_str
     assert upretty(h4) == ucode_str
     assert latex(h4) == r'{\mathcal{L}^2}\left( \left[0, \infty\right) \right)'
-    sT(h4, "L2(Interval(Integer(0), oo, False, True))")
+    sT(h4, "L2(Interval(Integer(0), oo, S.false, S.true))")
     assert str(h1 + h2) == 'H+C(2)'
     ascii_str = \
 """\
@@ -874,10 +878,10 @@ u("""\
     assert upretty(e4) == ucode_str
     assert latex(e4) == \
         r'\left(\left(\mathcal{C}^{1}\otimes \mathcal{C}^{2}\right)\oplus {\mathcal{F}}^{\otimes 2}\right)\otimes \left({\mathcal{L}^2}\left( \left[0, \infty\right) \right)\oplus \mathcal{H}\right)'
-    sT(e4, "TensorProductHilbertSpace((DirectSumHilbertSpace(TensorProductHilbertSpace(ComplexSpace(Integer(1)),ComplexSpace(Integer(2))),TensorPowerHilbertSpace(FockSpace(),Integer(2)))),(DirectSumHilbertSpace(L2(Interval(Integer(0), oo, False, True)),HilbertSpace())))")
+    sT(e4, "TensorProductHilbertSpace((DirectSumHilbertSpace(TensorProductHilbertSpace(ComplexSpace(Integer(1)),ComplexSpace(Integer(2))),TensorPowerHilbertSpace(FockSpace(),Integer(2)))),(DirectSumHilbertSpace(L2(Interval(Integer(0), oo, S.false, S.true)),HilbertSpace())))")
 
 
 def _test_sho1d():
     ad = RaisingOp('a')
-    assert pretty(ad) == u(' \u2020\na ')
+    assert pretty(ad) == u(' \N{DAGGER}\na ')
     assert latex(ad) == 'a^{\\dag}'

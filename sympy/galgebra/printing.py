@@ -30,10 +30,14 @@ from __future__ import print_function
 
 import os
 import sys
-from sympy.core.compatibility import StringIO
-from sympy.core.decorators import deprecated
 
-from sympy import C, S, Basic, Symbol, Matrix
+from sympy.core.compatibility import StringIO, range
+from sympy.core.decorators import deprecated
+from sympy.core.operations import AssocOp
+from sympy.core.power import Pow
+
+from sympy import S, Basic, Symbol, Matrix
+
 from sympy.printing.str import StrPrinter
 from sympy.printing.latex import LatexPrinter
 from sympy.printing.conventions import split_super_sub
@@ -222,20 +226,20 @@ class GA_Printer(StrPrinter):
         Basic.__str__ = GA_Printer.Basic__str__
         return
 
-    def __enter__ (self):
+    def __enter__(self):
         GA_Printer._on()
         return self
 
-    def __exit__ (self, type, value, traceback):
+    def __exit__(self, type, value, traceback):
         GA_Printer._off()
 
     @staticmethod
-    @deprecated(useinstead="with GA_Printer()", issue=4042, deprecated_since_version="0.7.4")
+    @deprecated(useinstead="with GA_Printer()", issue=7141, deprecated_since_version="0.7.4")
     def on():
         GA_Printer._on()
 
     @staticmethod
-    @deprecated(useinstead="with GA_Printer()", issue=4042, deprecated_since_version="0.7.4")
+    @deprecated(useinstead="with GA_Printer()", issue=7141, deprecated_since_version="0.7.4")
     def off():
         GA_Printer._off()
 
@@ -401,14 +405,14 @@ class GA_LatexPrinter(LatexPrinter):
         elif expr.exp.is_Rational and expr.exp.is_negative and expr.base.is_Function:
             # Things like 1/x
             return r"\frac{%s}{%s}" % \
-                (1, self._print(C.Pow(expr.base, -expr.exp)))
+                (1, self._print(Pow(expr.base, -expr.exp)))
         else:
             if expr.base.is_Function:
                 return self._print(expr.base, self._print(expr.exp))
             else:
                 if expr.is_commutative and expr.exp == -1:
                     """
-                    solves issue 1030
+                    solves issue 4129
                     As Mul always simplify 1/x to x**-1
                     The objective is achieved with this hack
                     first we get the latex for -1 * expr,
@@ -605,7 +609,7 @@ class GA_LatexPrinter(LatexPrinter):
                         tex += r"\partial^{%s} %s" % (i, self._print(x))
                 tex = r"\frac{\partial^{%s}}{%s} " % (dim, tex)
 
-        if isinstance(expr.expr, C.AssocOp):
+        if isinstance(expr.expr, AssocOp):
             return r"%s\left(%s\right)" % (tex, self._print(expr.expr))
         else:
             return r"%s %s" % (tex, self._print(expr.expr))

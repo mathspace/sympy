@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 
 from sympy.core.containers import Tuple
+from sympy.core.compatibility import range
 
 from types import FunctionType
 
@@ -213,6 +214,7 @@ class TableForm(object):
 
         Examples
         ========
+
         >>> from sympy import TableForm
         >>> t = TableForm([[5, 7], [4, 2], [10, 3]], headings='automatic')
         >>> t

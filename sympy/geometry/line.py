@@ -10,17 +10,20 @@ Segment
 """
 from __future__ import print_function, division
 
-from sympy.core import S, C, sympify, Dummy
-from sympy.functions.elementary.trigonometric import _pi_coeff as pi_coeff, \
-    sqrt
-from sympy.core.logic import fuzzy_and
+from sympy.core import S, sympify, Dummy
 from sympy.core.exprtools import factor_terms
+from sympy.core.relational import Eq
+from sympy.functions.elementary.trigonometric import (acos,
+     _pi_coeff as pi_coeff, sqrt, tan)
+from sympy.functions.elementary.piecewise import Piecewise
+from sympy.logic.boolalg import And
 from sympy.simplify.simplify import simplify
 from sympy.solvers import solve
 from sympy.geometry.exceptions import GeometryError
 from .entity import GeometryEntity
 from .point import Point
 from .util import _symbol
+from sympy.core.compatibility import is_sequence
 
 # TODO: this should be placed elsewhere and reused in other modules
 
@@ -30,7 +33,7 @@ class Undecidable(ValueError):
 
 
 class LinearEntity(GeometryEntity):
-    """An abstract base class for all linear entities (line, ray and segment)
+    """A base class for all linear entities (line, ray and segment)
     in a 2-dimensional Euclidean space.
 
     Attributes
@@ -46,10 +49,6 @@ class LinearEntity(GeometryEntity):
     =====
 
     This is an abstract class and is not meant to be instantiated.
-    Subclasses should implement the following methods:
-
-        * __eq__
-        * contains
 
     See Also
     ========
@@ -62,8 +61,9 @@ class LinearEntity(GeometryEntity):
         p1 = Point(p1)
         p2 = Point(p2)
         if p1 == p2:
-            # Rolygon returns lower priority classes...should LinearEntity, too?
-            return p1  # raise ValueError("%s.__new__ requires two unique Points." % cls.__name__)
+            # if it makes sense to return a Point, handle in subclass
+            raise ValueError(
+                "%s.__new__ requires two unique Points." % cls.__name__)
 
         return GeometryEntity.__new__(cls, p1, p2, **kwargs)
 
@@ -111,7 +111,7 @@ class LinearEntity(GeometryEntity):
 
     @property
     def coefficients(self):
-        """The coefficients (`a`, `b`, `c`) for the linear equation `ax + by + c = 0`.
+        """The coefficients (`a`, `b`, `c`) for `ax + by + c = 0`.
 
         See Also
         ========
@@ -144,7 +144,8 @@ class LinearEntity(GeometryEntity):
                 self.p2.x - self.p1.x,
                 self.p1.x*self.p2.y - self.p1.y*self.p2.x)])
 
-    def is_concurrent(*lines):
+    @staticmethod
+    def are_concurrent(*lines):
         """Is a sequence of linear entities concurrent?
 
         Two or more linear entities are concurrent if they all
@@ -179,15 +180,15 @@ class LinearEntity(GeometryEntity):
         Examples
         ========
 
-        >>> from sympy import Point, Line
+        >>> from sympy import Point, Line, Line3D
         >>> p1, p2 = Point(0, 0), Point(3, 5)
         >>> p3, p4 = Point(-2, -2), Point(0, 2)
         >>> l1, l2, l3 = Line(p1, p2), Line(p1, p3), Line(p1, p4)
-        >>> l1.is_concurrent(l2, l3)
+        >>> Line.are_concurrent(l1, l2, l3)
         True
 
         >>> l4 = Line(p2, p3)
-        >>> l4.is_concurrent(l2, l3)
+        >>> Line.are_concurrent(l2, l3, l4)
         False
 
         """
@@ -338,7 +339,7 @@ class LinearEntity(GeometryEntity):
         """
         v1 = l1.p2 - l1.p1
         v2 = l2.p2 - l2.p1
-        return C.acos(v1.dot(v2)/(abs(v1)*abs(v2)))
+        return acos(v1.dot(v2)/(abs(v1)*abs(v2)))
 
     def parallel_line(self, p):
         """Create a new Line parallel to this linear entity which passes
@@ -373,6 +374,7 @@ class LinearEntity(GeometryEntity):
 
         """
         d = self.p1 - self.p2
+        p = Point(p)
         return Line(p, p + d)
 
     def perpendicular_line(self, p):
@@ -407,6 +409,7 @@ class LinearEntity(GeometryEntity):
         True
 
         """
+        p = Point(p)
         d1, d2 = (self.p1 - self.p2).args
         if d2 == 0:  # If a horizontal line
             if p.y == self.p1.y:  # if p is on this linear entity
@@ -460,6 +463,7 @@ class LinearEntity(GeometryEntity):
         Segment(Point(2, 2), Point(4, 0))
 
         """
+        p = Point(p)
         if p in self:
             return p
         a, b, c = self.coefficients
@@ -677,6 +681,7 @@ class LinearEntity(GeometryEntity):
                 return [o]
             else:
                 return []
+
         elif isinstance(o, LinearEntity):
             a1, b1, c1 = self.coefficients
             a2, b2, c2 = o.coefficients
@@ -693,10 +698,9 @@ class LinearEntity(GeometryEntity):
                 elif isinstance(self, Ray):
                     if isinstance(o, Ray):
                         # case 1, rays in the same direction
-                        if self.xdirection == o.xdirection:
-                            if self.source.x < o.source.x:
-                                return [o]
-                            return [self]
+                        if self.xdirection == o.xdirection and \
+                                self.ydirection == o.ydirection:
+                            return [self] if (self.source in o) else [o]
                         # case 2, rays in the opposite directions
                         else:
                             if o.source in self:
@@ -765,27 +769,33 @@ class LinearEntity(GeometryEntity):
                     return True
 
             def inray(self):
+                if self.p1 == inter:
+                    return True
                 sray = Ray(self.p1, inter)
                 if sray.xdirection == self.xdirection and \
                         sray.ydirection == self.ydirection:
                     return True
-            for i in range(2):
-                if isinstance(self, Line):
-                    if isinstance(o, Line):
-                        return [inter]
-                    elif isinstance(o, Ray) and inray(o):
-                        return [inter]
-                    elif isinstance(o, Segment) and inseg(o):
-                        return [inter]
-                elif isinstance(self, Ray) and inray(self):
-                    if isinstance(o, Ray) and inray(o):
-                        return [inter]
-                    elif isinstance(o, Segment) and inseg(o):
-                        return [inter]
-                elif isinstance(self, Segment) and inseg(self):
-                    if isinstance(o, Segment) and inseg(o):
-                        return [inter]
-                self, o = o, self
+
+            prec = (Line, Ray, Segment)
+            expr = self
+            if prec.index(expr.func) > prec.index(o.func):
+                expr, o = o, expr
+            rv = [inter]
+            if isinstance(expr, Line):
+                if isinstance(o, Line):
+                    return rv
+                elif isinstance(o, Ray) and inray(o):
+                    return rv
+                elif isinstance(o, Segment) and inseg(o):
+                    return rv
+            elif isinstance(expr, Ray) and inray(expr):
+                if isinstance(o, Ray) and inray(o):
+                    return rv
+                elif isinstance(o, Segment) and inseg(o):
+                    return rv
+            elif isinstance(expr, Segment) and inseg(expr):
+                if isinstance(o, Segment) and inseg(o):
+                    return rv
             return []
 
         return o.intersection(self)
@@ -937,14 +947,6 @@ class LinearEntity(GeometryEntity):
             None if a determination cannot be made."""
         raise NotImplementedError()
 
-    def __eq__(self, other):
-        """Subclasses should implement this method."""
-        raise NotImplementedError()
-
-    def __hash__(self):
-        return super(LinearEntity, self).__hash__()
-
-
 class Line(LinearEntity):
     """An infinite line in space.
 
@@ -1009,16 +1011,18 @@ class Line(LinearEntity):
             except NotImplementedError:
                 raise ValueError('The 2nd argument was not a valid Point. '
                 'If it was a slope, enter it with keyword "slope".')
-            if p1 == p2:
-                raise ValueError('A line requires two distinct points.')
         elif slope is not None and pt is None:
             slope = sympify(slope)
-            if slope.is_bounded is False:
-                # when unbounded slope, don't change x
-                p2 = p1 + Point(0, 1)
+            if slope.is_finite is False:
+                # when infinite slope, don't change x
+                dx = 0
+                dy = 1
             else:
                 # go over 1 up slope
-                p2 = p1 + Point(1, slope)
+                dx = 1
+                dy = slope
+            # XXX avoiding simplification by adding to coords directly
+            p2 = Point(p1.x + dx, p1.y + dy)
         else:
             raise ValueError('A 2nd Point or keyword "slope" must be used.')
 
@@ -1096,8 +1100,26 @@ class Line(LinearEntity):
         return simplify(a*x + b*y + c)
 
     def contains(self, o):
-        """Return True if o is on this Line, or False otherwise."""
+        """
+        Return True if o is on this Line, or False otherwise.
+
+        Examples
+        ========
+
+        >>> from sympy import Line,Point
+        >>> p1, p2 = Point(0, 1), Point(3, 4)
+        >>> l = Line(p1, p2)
+        >>> l.contains(p1)
+        True
+        >>> l.contains((0, 1))
+        True
+        >>> l.contains((0, 0))
+        False
+        """
+        if is_sequence(o):
+            o = Point(o)
         if isinstance(o, Point):
+            o = o.func(*[simplify(i) for i in o.args])
             x, y = Dummy(), Dummy()
             eq = self.equation(x, y)
             if not eq.has(y):
@@ -1131,9 +1153,12 @@ class Line(LinearEntity):
         >>> s = Line(p1, p2)
         >>> s.distance(Point(-1, 1))
         sqrt(2)
+        >>> s.distance((-1, 2))
+        3*sqrt(2)/2
         """
         if not isinstance(o, Point):
-            raise NotImplementedError
+            if is_sequence(o):
+                o = Point(o)
         a, b, c = self.coefficients
         if 0 in (a, b):
             return self.perpendicular_segment(o).length
@@ -1142,16 +1167,11 @@ class Line(LinearEntity):
         y = m*x - c/b
         return abs(factor_terms(o.y - y))/sqrt(1 + m**2)
 
-
-    def __eq__(self, other):
-        """Return True if other is equal to this Line, or False otherwise."""
+    def equal(self, other):
+        """Returns True if self and other are the same mathematical entities"""
         if not isinstance(other, Line):
             return False
-        return Point.is_collinear(self.p1, self.p2, other.p1, other.p2)
-
-    def __hash__(self):
-        return super(Line, self).__hash__()
-
+        return Point.is_collinear(self.p1, other.p1, self.p2, other.p2)
 
 class Ray(LinearEntity):
     """
@@ -1217,10 +1237,11 @@ class Ray(LinearEntity):
             try:
                 p2 = Point(pt)
             except NotImplementedError:
-                raise ValueError(
-                    'The 2nd argument was not a valid Point;\nif '
-                    'it was meant to be an angle it should be '
-                    'given with keyword "angle".')
+                from sympy.utilities.misc import filldedent
+                raise ValueError(filldedent('''
+                    The 2nd argument was not a valid Point; if
+                    it was meant to be an angle it should be
+                    given with keyword "angle".'''))
             if p1 == p2:
                 raise ValueError('A Ray requires two distinct points.')
         elif angle is not None and pt is None:
@@ -1242,9 +1263,13 @@ class Ray(LinearEntity):
                 if p2 is None:
                     c *= S.Pi
             else:
-                c = angle
+                c = angle % (2*S.Pi)
             if not p2:
-                p2 = p1 + Point(1, C.tan(c))
+                m = 2*c/S.Pi
+                left = And(1 < m, m < 3)  # is it in quadrant 2 or 3?
+                x = Piecewise((-1, left), (Piecewise((0, Eq(m % 1, 0)), (1, True)), True))
+                y = Piecewise((-tan(c), left), (Piecewise((1, Eq(m, 1)), (-1, Eq(m, 3)), (tan(c), True)), True))
+                p2 = p1 + Point(x, y)
         else:
             raise ValueError('A 2nd point or keyword "angle" must be used.')
 
@@ -1353,18 +1378,21 @@ class Ray(LinearEntity):
         >>> s = Ray(p1, p2)
         >>> s.distance(Point(-1, -1))
         sqrt(2)
+        >>> s.distance((-1, 2))
+        3*sqrt(2)/2
         """
         if not isinstance(o, Point):
-            raise NotImplementedError
+            if is_sequence(o):
+                o = Point(o)
         s = self.perpendicular_segment(o)
         if isinstance(s, Point):
             if self.contains(s):
                 return S.Zero
         else:
             # since arg-order is arbitrary, find the non-o point
-            non_o = s.p1 if s.p2 != o else s.p2
+            non_o = s.p1 if s.p1 != o else s.p2
             if self.contains(non_o):
-                return self.distance(o)  # = s.length but simpler
+                return Line(self).distance(o)  # = s.length but simpler
         # the following applies when neither of the above apply
         return self.source.distance(o)
 
@@ -1398,24 +1426,50 @@ class Ray(LinearEntity):
         t = _symbol(parameter)
         return [t, 0, 10]
 
-    def __eq__(self, other):
-        """Is the other GeometryEntity equal to this Ray?"""
+    def equals(self, other):
+        """Returns True if self and other are the same mathematical entities"""
         if not isinstance(other, Ray):
             return False
-        return (self.source == other.source) and (other.p2 in self)
-
-    def __hash__(self):
-        return super(Ray, self).__hash__()
+        return self.source == other.source and other.p2 in self
 
     def contains(self, o):
-        """Is other GeometryEntity contained in this Ray?"""
+        """
+        Is other GeometryEntity contained in this Ray?
+
+        Examples
+        ========
+
+        >>> from sympy import Ray,Point,Segment
+        >>> p1, p2 = Point(0, 0), Point(4, 4)
+        >>> r = Ray(p1, p2)
+        >>> r.contains(p1)
+        True
+        >>> r.contains((1, 1))
+        True
+        >>> r.contains((1, 3))
+        False
+        >>> s = Segment((1, 1), (2, 2))
+        >>> r.contains(s)
+        True
+        >>> s = Segment((1, 2), (2, 5))
+        >>> r.contains(s)
+        False
+        >>> r1 = Ray((2, 2), (3, 3))
+        >>> r.contains(r1)
+        True
+        >>> r1 = Ray((2, 2), (3, 5))
+        >>> r.contains(r1)
+        False
+        """
         if isinstance(o, Ray):
             return (Point.is_collinear(self.p1, self.p2, o.p1, o.p2) and
                     self.xdirection == o.xdirection and
                     self.ydirection == o.ydirection)
         elif isinstance(o, Segment):
             return o.p1 in self and o.p2 in self
-        elif isinstance(o, Point):
+        elif is_sequence(o):
+            o = Point(o)
+        if isinstance(o, Point):
             if Point.is_collinear(self.p1, self.p2, o):
                 if self.xdirection is S.Infinity:
                     rv = o.x >= self.source.x
@@ -1425,8 +1479,8 @@ class Ray(LinearEntity):
                     rv = o.y >= self.source.y
                 else:
                     rv = o.y <= self.source.y
-                if isinstance(rv, bool):
-                    return rv
+                if rv == True or rv == False:
+                    return bool(rv)
                 raise Undecidable(
                     'Cannot determine if %s is in %s' % (o, self))
             else:
@@ -1495,14 +1549,14 @@ class Segment(LinearEntity):
         p2 = Point(p2)
         if p1 == p2:
             return Point(p1)
-        if (p1.x > p2.x) is True:
+        if (p1.x > p2.x) == True:
             p1, p2 = p2, p1
-        elif (p1.x == p2.x) is (p1.y > p2.y) is True:
+        elif (p1.x == p2.x) == True and (p1.y > p2.y) == True:
             p1, p2 = p2, p1
         return LinearEntity.__new__(cls, p1, p2, **kwargs)
 
     def plot_interval(self, parameter='t'):
-        """The plot interval for the default geometric plot of the Segment. Gives
+        """The plot interval for the default geometric plot of the Segment gives
         values that will produce the full segment in a plot.
 
         Parameters
@@ -1567,7 +1621,7 @@ class Segment(LinearEntity):
 
         """
         l = LinearEntity.perpendicular_line(self, self.midpoint)
-        if p is None or p not in l:
+        if p is None or Point(p) not in l:
             return l
         else:
             return Segment(self.midpoint, p)
@@ -1631,34 +1685,24 @@ class Segment(LinearEntity):
         >>> s = Segment(p1, p2)
         >>> s.distance(Point(10, 15))
         sqrt(170)
+        >>> s.distance((0, 12))
+        sqrt(73)
         """
+        if is_sequence(o):
+            o = Point(o)
         if isinstance(o, Point):
-            return self._do_point_distance(o)
+            seg_vector = self.p2 - self.p1
+            pt_vector = o - self.p1
+            t = seg_vector.dot(pt_vector)/self.length**2
+            if t >= 1:
+                distance = Point.distance(self.p2, o)
+            elif t <= 0:
+                distance = Point.distance(self.p1, o)
+            else:
+                distance = Point.distance(
+                    self.p1 + Point(t*seg_vector.x, t*seg_vector.y), o)
+            return distance
         raise NotImplementedError()
-
-    def _do_point_distance(self, pt):
-        """Calculates the distance between a point and a line segment."""
-
-        seg_vector = self.p2 - self.p1
-        pt_vector = pt - self.p1
-        t = seg_vector.dot(pt_vector)/self.length**2
-        if t >= 1:
-            distance = Point.distance(self.p2, pt)
-        elif t <= 0:
-            distance = Point.distance(self.p1, pt)
-        else:
-            distance = Point.distance(
-                self.p1 + Point(t*seg_vector.x, t*seg_vector.y), pt)
-        return distance
-
-    def __eq__(self, other):
-        """Is the other GeometryEntity equal to this Ray?"""
-        if not isinstance(other, Segment):
-            return False
-        return (self.p1 == other.p1) and (self.p2 == other.p2)
-
-    def __hash__(self):
-        return super(Segment, self).__hash__()
 
     def contains(self, other):
         """

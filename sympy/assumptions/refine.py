@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 
-from sympy.core import S, Add, Expr
+from sympy.core import S, Add, Expr, Basic
 from sympy.assumptions import Q, ask
 from sympy.core.logic import fuzzy_not
 
@@ -24,6 +24,8 @@ def refine(expr, assumptions=True):
         x
 
     """
+    if not isinstance(expr, Basic):
+        return expr
     if not expr.is_Atom:
         args = [refine(arg, assumptions) for arg in expr.args]
         # TODO: this will probably not work with Integral or Polynomial
@@ -190,6 +192,37 @@ def refine_exp(expr, assumptions):
                 elif ask(Q.odd(coeff + S.Half), assumptions):
                     return S.ImaginaryUnit
 
+
+def refine_atan2(expr, assumptions):
+    """
+    Handler for the atan2 function
+
+    Examples
+    ========
+
+    >>> from sympy import Symbol, Q, refine, atan2
+    >>> from sympy.assumptions.refine import refine_atan2
+    >>> from sympy.abc import x, y
+    >>> refine_atan2(atan2(y,x), Q.real(y) & Q.positive(x))
+    atan(y/x)
+    >>> refine_atan2(atan2(y,x), Q.negative(y) & Q.negative(x))
+    atan(y/x) - pi
+    >>> refine_atan2(atan2(y,x), Q.positive(y) & Q.negative(x))
+    atan(y/x) + pi
+    """
+    from sympy.functions.elementary.trigonometric import atan
+    from sympy.core import S
+    y, x = expr.args
+    if ask(Q.real(y) & Q.positive(x), assumptions):
+        return atan(y / x)
+    elif ask(Q.negative(y) & Q.negative(x), assumptions):
+        return atan(y / x) - S.Pi
+    elif ask(Q.positive(y) & Q.negative(x), assumptions):
+        return atan(y / x) + S.Pi
+    else:
+        return expr
+
+
 def refine_Relational(expr, assumptions):
     """
     Handler for Relational
@@ -207,10 +240,11 @@ handlers_dict = {
     'Abs': refine_abs,
     'Pow': refine_Pow,
     'exp': refine_exp,
-    'Equality' : refine_Relational,
-    'Unequality' : refine_Relational,
-    'GreaterThan' : refine_Relational,
-    'LessThan' : refine_Relational,
-    'StrictGreaterThan' : refine_Relational,
-    'StrictLessThan' : refine_Relational
+    'atan2': refine_atan2,
+    'Equality': refine_Relational,
+    'Unequality': refine_Relational,
+    'GreaterThan': refine_Relational,
+    'LessThan': refine_Relational,
+    'StrictGreaterThan': refine_Relational,
+    'StrictLessThan': refine_Relational
 }

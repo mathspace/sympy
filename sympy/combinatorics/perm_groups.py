@@ -4,6 +4,7 @@ from random import randrange, choice
 from math import log
 
 from sympy.core import Basic
+from sympy.core.compatibility import range
 from sympy.combinatorics import Permutation
 from sympy.combinatorics.permutations import (_af_commutes_with, _af_invert,
     _af_rmul, _af_rmuln, _af_pow, Cycle)
@@ -1281,7 +1282,6 @@ class PermutationGroup(Basic):
         while 1:
             # backtrack when finished iterating over coset
             if pos[h] >= posmax[h]:
-                #count_b += 1
                 if h == 0:
                     raise StopIteration
                 pos[h] = 0
@@ -2403,6 +2403,7 @@ class PermutationGroup(Basic):
 
         Examples
         ========
+
         >>> from sympy.combinatorics.permutations import Permutation
         >>> from sympy.combinatorics.perm_groups import PermutationGroup
         >>> a = Permutation([0, 2, 1])
@@ -2573,11 +2574,7 @@ class PermutationGroup(Basic):
                 continue
             i -= 1
         # build the strong generating set
-        strong_gens = []
-        for gens in strong_gens_distr:
-            for gen in gens:
-                if gen not in strong_gens:
-                    strong_gens.append(gen)
+        strong_gens = list(uniq(i for gens in strong_gens_distr for i in gens))
         return _base, strong_gens
 
     def schreier_sims_random(self, base=None, gens=None, consec_succ=10,
@@ -3294,6 +3291,7 @@ def _orbits(degree, generators):
 
     Examples
     ========
+
     >>> from sympy.combinatorics.permutations import Permutation
     >>> from sympy.combinatorics.perm_groups import PermutationGroup, _orbits
     >>> a = Permutation([0, 2, 1])

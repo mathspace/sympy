@@ -1,7 +1,7 @@
 from __future__ import print_function, division
 
-from sympy.core import Set, Dict, Tuple
-from sympy.liealgebras.cartan_type import Standard_Cartan, CartanType
+from sympy.core.compatibility import range
+from sympy.liealgebras.cartan_type import Standard_Cartan
 from sympy.matrices import eye
 
 
@@ -65,6 +65,7 @@ class TypeA(Standard_Cartan):
 
         Examples
         ========
+
         >>> from sympy.liealgebras.cartan_type import CartanType
         >>> c = CartanType("A4")
         >>> c.simple_root(1)

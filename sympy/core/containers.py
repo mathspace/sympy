@@ -9,7 +9,7 @@
 from __future__ import print_function, division
 
 from sympy.core.basic import Basic
-from sympy.core.compatibility import as_int
+from sympy.core.compatibility import as_int, range
 from sympy.core.sympify import sympify, converter
 from sympy.utilities.iterables import iterable
 
@@ -94,10 +94,10 @@ class Tuple(Basic):
         return tuple([a._to_mpmath(prec) for a in self.args])
 
     def __lt__(self, other):
-        return self.args < other.args
+        return sympify(self.args < other.args)
 
     def __le__(self, other):
-        return self.args <= other.args
+        return sympify(self.args <= other.args)
 
     # XXX: Basic defines count() as something different, so we can't
     # redefine it here. Originally this lead to cse() test failure.
@@ -247,9 +247,9 @@ class Dict(Basic):
         return sympify(key) in self._dict
 
     def __lt__(self, other):
-        return self.args < other.args
+        return sympify(self.args < other.args)
 
     @property
     def _sorted_args(self):
         from sympy.utilities import default_sort_key
-        return sorted(self.args, key=default_sort_key)
+        return tuple(sorted(self.args, key=default_sort_key))

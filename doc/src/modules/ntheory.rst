@@ -53,6 +53,10 @@ Ntheory Functions Reference
 
 .. autofunction:: totient
 
+.. autofunction:: core
+
+.. autofunction:: digits
+
 .. module:: sympy.ntheory.modular
 
 .. autofunction:: symmetric_residue
@@ -106,3 +110,13 @@ Ntheory Functions Reference
 .. autofunction:: legendre_symbol
 
 .. autofunction:: jacobi_symbol
+
+.. automodule:: sympy.ntheory.continued_fraction
+    :members:
+
+.. autoclass:: sympy.ntheory.mobius
+    :members:
+
+.. module:: sympy.ntheory.egyptian_fraction
+
+.. autofunction:: egyptian_fraction

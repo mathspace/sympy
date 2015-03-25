@@ -7,6 +7,7 @@ A tool to help keep .mailmap and AUTHORS up-to-date.
 # - Check doc/src/aboutus.rst
 # - Make it easier to update .mailmap or AUTHORS with the correct entries.
 
+from __future__ import unicode_literals
 from __future__ import print_function
 
 import os
@@ -36,11 +37,17 @@ git_command = 'git log --format="%aN <%aE>" | sort -u'
 
 git_people = unicode(local(git_command, capture=True), 'utf-8').strip().split("\n")
 
+from distutils.version import LooseVersion
+
+git_ver = local('git --version', capture=True)[12:]
+if LooseVersion(git_ver) < LooseVersion('1.8.4.2'):
+    print(yellow("Please use a newer git version >= 1.8.4.2"))
+
 with open(os.path.realpath(os.path.join(__file__, os.path.pardir,
     os.path.pardir, "AUTHORS"))) as fd:
     AUTHORS = unicode(fd.read(), 'utf-8')
 
-firstauthor = u"Ondřej Čertík"
+firstauthor = "Ondřej Čertík"
 
 authors = AUTHORS[AUTHORS.find(firstauthor):].strip().split('\n')
 

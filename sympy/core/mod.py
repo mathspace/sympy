@@ -35,11 +35,19 @@ class Mod(Function):
             to be less than q.
             """
 
-            if p == q or p == -q or p.is_Pow and p.exp.is_Integer and p.base == q:
+            if (p == q or p == -q or
+                    p.is_Pow and p.exp.is_Integer and p.base == q or
+                    p.is_integer and q == 1):
                 return S.Zero
 
-            if p.is_Number and q.is_Number:
-                return (p % q)
+            if q.is_Number:
+                if p.is_Number:
+                    return (p % q)
+                if q == 2:
+                    if p.is_even:
+                        return S.Zero
+                    elif p.is_odd:
+                        return S.One
 
             # by ratio
             r = p/q
@@ -50,7 +58,7 @@ class Mod(Function):
             else:
                 if type(d) is int:
                     rv = p - d*q
-                    if (rv*q < 0) is True:
+                    if (rv*q < 0) == True:
                         rv += q
                     return rv
 
@@ -128,3 +136,16 @@ class Mod(Function):
             p = G.args[0]*p
             G = Mul._from_args(G.args[1:])
         return G*cls(p, q, evaluate=(p, q) != (pwas, qwas))
+
+    def _eval_is_integer(self):
+        from sympy.core.logic import fuzzy_and
+        p, q = self.args
+        return fuzzy_and([p.is_integer, q.is_integer, q.is_nonzero])
+
+    def _eval_is_nonnegative(self):
+        if self.args[1].is_positive:
+            return True
+
+    def _eval_is_nonpositive(self):
+        if self.args[1].is_negative:
+            return True
