@@ -757,9 +757,7 @@ class Float(Number):
     @classmethod
     def _new(cls, _mpf_, _prec):
         # special cases
-        if _mpf_ == _mpf_zero:
-            return S.Zero  # XXX this is different from Float which gives 0.0
-        elif _mpf_ == _mpf_nan:
+        if _mpf_ == _mpf_nan:
             return S.NaN
 
         obj = Expr.__new__(cls)
