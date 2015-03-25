@@ -643,7 +643,10 @@ class Expr(Basic, EvalfMixin):
                 n2 = self._eval_evalf(2)
                 if n2 is None:
                     raise AttributeError
-                if n2._prec == 1:  # no significance
+                elif n2 is S.ComplexInfinity:
+                    # Try evalf(2) for this case anyway - it can succeed
+                    pass
+                elif n2._prec == 1:  # no significance
                     raise AttributeError
             except (AttributeError, ValueError):
                 return None
@@ -667,7 +670,10 @@ class Expr(Basic, EvalfMixin):
                 n2 = self._eval_evalf(2)
                 if n2 is None:
                     raise AttributeError
-                if n2._prec == 1:  # no significance
+                elif n2 is S.ComplexInfinity:
+                    # Try evalf(2) for this case anyway - it can succeed
+                    pass
+                elif n2._prec == 1:  # no significance
                     raise AttributeError
             except (AttributeError, ValueError):
                 return None
