@@ -138,13 +138,10 @@ def test_issue_4941():
     assert not integrate(sqrt(1 + sinh(x/20)**2), (x, -25, 25)).has(Integral)
 
 
-@XFAIL
 def test_issue_4950():
-    # Problem is with exception
     assert not integrate((-60*exp(x) - 19.2*exp(4*x))*exp(4*x), x).has(Integral)
 
 
-@XFAIL
 def test_issue_4968():
     assert not integrate(sin(log(x**2))).has(Integral)
 
