@@ -65,6 +65,9 @@ def comp(z1, z2, tol=None):
         raise ValueError('exact comparison requires two Numbers')
     diff = abs(z1 - z2)
     az1 = abs(z1)
+    # Assume we can replace the Float(0) with actual zero so we can simplify
+    # as we did before Float(0) existed, found via test_issues_5919_6830.
+    az1 = az1.subs({Float(0): S.Zero})
     if z2 and az1 > 1:
         return diff/az1 <= tol
     else:
