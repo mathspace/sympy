@@ -5,12 +5,11 @@ from __future__ import print_function, division
 from random import uniform
 import random
 
-from sympy.core.numbers import I
-from sympy.simplify.simplify import nsimplify
+from sympy.core.compatibility import as_int, is_sequence
 from sympy.core.containers import Tuple
-from sympy.core.numbers import comp
+from sympy.core.numbers import I, comp
 from sympy.core.symbol import Symbol
-from sympy.core.compatibility import is_sequence, as_int
+from sympy.simplify.simplify import nsimplify
 
 
 def random_complex_number(a=2, b=-1, c=3, d=1, rational=False):
