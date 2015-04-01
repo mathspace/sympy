@@ -486,7 +486,8 @@ class Abs(Function):
 
         def eval_by_conjugate():
             from sympy import expand_mul
-            return sqrt(expand_mul(arg*arg.conjugate()))
+            expanded = expand_mul(arg*arg.conjugate())
+            return sqrt(expanded)
 
         if arg.is_Add:
             if arg.has(S.Infinity, S.NegativeInfinity):
