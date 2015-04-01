@@ -552,6 +552,16 @@ class Mul(Expr, AssocOp):
             # we know for sure the result will be 0
             return [coeff], [], order_symbols
 
+        # 0.0
+        elif coeff == Float(0):
+            # test_wester: test_D1
+            # Note if the denominator was less than the
+            # multiplicative identity instead of greater than and
+            # 0.0 actually meant the interval(-0.05,0.05) instead
+            # of the point singularity S.Zero,
+            # then this would be wrong, e.g. -0.04 / 0.01 = -4
+            return [coeff], [], order_symbols
+
         # check for straggling Numbers that were produced
         _new = []
         for i in c_part:
@@ -1614,6 +1624,6 @@ def expand_2arg(e):
     return bottom_up(e, do)
 
 
-from .numbers import Rational
+from .numbers import Float, Rational
 from .power import Pow
 from .add import Add, _addsort, _unevaluated_Add
