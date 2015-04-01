@@ -485,9 +485,13 @@ class Abs(Function):
                 return arg2
 
         def eval_by_conjugate():
-            from sympy import expand_mul
+            from sympy import expand_mul, Float
             expanded = expand_mul(arg*arg.conjugate())
-            return sqrt(expanded)
+            # Assume we can replace the Float(0) with actual zero
+            # so we can simplify as we did before Float(0) existed...
+            replacements = {Float(0): S.Zero}
+            result = expanded.subs(replacements)
+            return sqrt(result)
 
         if arg.is_Add:
             if arg.has(S.Infinity, S.NegativeInfinity):
