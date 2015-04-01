@@ -220,7 +220,7 @@ def test_issue_6343():
         And(x < -S(15)/4 + sqrt(401)/4, -sqrt(401)/4 - S(15)/4 < x)
 
 
-def test_issue_8235():
+def test_issue_8235_part1():
     assert reduce_inequalities(x**2 - 1 < 0) == \
         And(S(-1) < x, x < S(1))
     assert reduce_inequalities(x**2 - 1 <= 0) == \
@@ -230,6 +230,8 @@ def test_issue_8235():
     assert reduce_inequalities(x**2 - 1 >= 0) == \
         Or(And(-oo < x, x <= S(-1)), And(S(1) <= x, x < oo))
 
+
+def test_issue_8235_part2():
     eq = x**8 + x - 9  # we want RootOf solns here
     sol = solve(eq >= 0)
     tru = Or(And(RootOf(eq, 1) <= x, x < oo), And(-oo < x, x <= RootOf(eq, 0)))
