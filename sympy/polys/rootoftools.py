@@ -603,7 +603,10 @@ class RootOf(Expr):
                     pass
                 interval = interval.refine()
 
-        return Float._new(root.real._mpf_, prec) + I*Float._new(root.imag._mpf_, prec)
+        real_part = Float._new(root.real._mpf_, prec)
+        if self.is_real:
+            return real_part
+        return real_part + I*Float._new(root.imag._mpf_, prec)
 
     def eval_rational(self, tol):
         """
