@@ -253,7 +253,7 @@ class Add(Expr, AssocOp):
         _addsort(newseq)
 
         # current code expects coeff to be first
-        if coeff is not S.Zero:
+        if coeff not in (S.Zero, Float(0)):
             newseq.insert(0, coeff)
 
         # we are done
@@ -934,4 +934,4 @@ class Add(Expr, AssocOp):
         return tuple(sorted(self.args, key=lambda w: default_sort_key(w)))
 
 from .mul import Mul, _keep_coeff, prod
-from sympy.core.numbers import Rational
+from sympy.core.numbers import Float, Rational
