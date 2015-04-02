@@ -1470,6 +1470,8 @@ def test_Mod():
     assert x % y == Mod(x, y)
     assert (x % y).subs({x: 5, y: 3}) == 2
 
+
+def test_Mod_Float_handling():
     # Float handling
     point3 = Float(3.3) % 1
     assert (x - 3.3) % 1 == Mod(1.*x + 1 - point3, 1)
@@ -1486,6 +1488,8 @@ def test_Mod():
     e = Mod(Rational(13, 10), Rational(7, 10))
     assert comp(e, .6) and e.is_Rational
 
+
+def test_Mod_sign():
     # check that sign is right
     r2 = sqrt(2)
     r3 = sqrt(3)
@@ -1497,6 +1501,8 @@ def test_Mod():
             reps = [(x, _x), (y, _y)]
             assert Mod(3*x + y, 9).subs(reps) == (3*_x + _y) % 9
 
+
+def test_Mod_denesting():
     # denesting
     #   easy case
     assert Mod(Mod(x, y), y) == Mod(x, y)
@@ -1506,6 +1512,8 @@ def test_Mod():
             for k in range(3):
                 assert Mod(Mod(k, i), j) == (k % i) % j
 
+
+def test_Mod_known_difference():
     # known difference
     assert Mod(5*sqrt(2), sqrt(5)) == 5*sqrt(2) - 3*sqrt(5)
     p = symbols('p', positive=True)
@@ -1515,10 +1523,15 @@ def test_Mod():
     assert Mod(n - 2*p, n - p) == -p
     assert Mod(p - 2*n, p - n) == -n
 
+
+def test_Mod_handling_sums_part1():
     # handling sums
     assert (x + 3) % 1 == Mod(x, 1)
     assert (x + 3.0) % 1 == Mod(1.*x, 1)
     assert (x - S(33)/10) % 1 == Mod(x + S(7)/10, 1)
+
+
+def test_Mod_handling_sums_part2():
     assert str(Mod(.6*x + y, .3*y)) == str(Mod(0.1*y + 0.6*x, 0.3*y))
     assert (x + 1) % x == 1 % x
     assert (x + y) % x == y % x
@@ -1526,6 +1539,8 @@ def test_Mod():
     assert (a + 3*x + 1) % (2*x) == Mod(a + x + 1, 2*x)
     assert (12*x + 18*y) % (3*x) == 3*Mod(6*y, x)
 
+
+def test_Mod_gcd_extraction():
     # gcd extraction
     assert (-3*x) % (-2*y) == -Mod(3*x, 2*y)
     assert (.6*pi) % (.3*x*pi) == 0.3*pi*Mod(2, x)
@@ -1544,10 +1559,13 @@ def test_Mod():
     assert (3*i*x) % (2*i*y) == i*Mod(3*x, 2*y)
     assert Mod(4*i, 4) == 0
 
-    # issue 8677
+
+def test_Mod_issue_8677():
     n = Symbol('n', integer=True, positive=True)
     assert (factorial(n) % n).equals(0) is not False
 
+
+def test_Mod_with_parity():
     # symbolic with known parity
     n = Symbol('n', even=True)
     assert Mod(n, 2) == 0
