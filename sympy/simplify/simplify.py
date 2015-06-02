@@ -4368,7 +4368,7 @@ def _futrig(e, **kwargs):
         [identity, TR2i],  # sin-cos ratio to tan
         [identity, lambda x: _eapply(
             expand_mul, TR22(x), trigs)],  # tan-cot to sec-csc
-        TR1, TR2, TR2i,
+        TR1, TR2i,
         [identity, lambda x: _eapply(
             factor_terms, TR12(x), trigs)],  # expand tan of sum
         )]
