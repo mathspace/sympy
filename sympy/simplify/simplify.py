@@ -4354,7 +4354,7 @@ def _futrig(e, **kwargs):
         [identity, lambda x: _eapply(_mexpand, x, trigs)],
         TRmorrie,
         TR10i,  # sin-cos products > sin-cos of sums
-        [identity, TR8],  # sin-cos products -> sin-cos of sums
+        # [identity, TR8],  # sin-cos products -> sin-cos of sums
         [identity, lambda x: TR2i(TR2(x))],  # tan -> sin-cos -> tan
         [
             lambda x: _eapply(expand_mul, TR5(x), trigs),
