@@ -2,7 +2,7 @@ from __future__ import print_function, division
 
 import sympy.polys
 from sympy import Integer
-from fractions import gcd
+from math import gcd
 
 
 def egyptian_fraction(r, algorithm="Greedy"):
