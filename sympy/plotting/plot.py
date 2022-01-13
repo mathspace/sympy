@@ -26,7 +26,7 @@ from __future__ import print_function, division
 
 from inspect import getargspec
 from itertools import chain
-from collections import Callable
+from collections.abc import Callable
 import warnings
 
 from sympy import sympify, Expr, Tuple, Dummy, Symbol

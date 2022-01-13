@@ -261,7 +261,7 @@ class Linearizer(object):
         # Compose dict of operating conditions
         if isinstance(op_point, dict):
             op_point_dict = op_point
-        elif isinstance(op_point, collections.Iterable):
+        elif isinstance(op_point, collections.abc.Iterable):
             op_point_dict = {}
             for op in op_point:
                 op_point_dict.update(op)
