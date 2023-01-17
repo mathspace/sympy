@@ -58,11 +58,8 @@ def _arity(f):
     """
     Python 2 and 3 compatible version that do not raise a Deprecation warning.
     """
-    if sys.version_info < (3,):
-        return len(inspect.getargspec(f)[0])
-    else:
-       param = inspect.signature(f).parameters.values()
-       return len([p for p in param if p.kind == p.POSITIONAL_OR_KEYWORD])
+    param = inspect.signature(f).parameters.values()
+    return len([p for p in param if p.kind == p.POSITIONAL_OR_KEYWORD])
 
 
 class Plot(object):

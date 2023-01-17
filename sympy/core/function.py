@@ -91,31 +91,6 @@ class ArgumentIndexError(ValueError):
                (self.args[1], self.args[0]))
 
 def _getevalargs(eval_):
-    import sys
-    old = _getevalargs_old(eval_)
-    if sys.version_info < (3, ):
-        return old
-    else:
-        new = _getevalargs_new(eval_)
-        assert new == old, "new: %s != old: %s (%s)" % (new, old, inspect.signature(eval_))
-        return new
-
-def _getevalargs_old(eval_):
-    evalargspec = inspect.getargspec(eval_)
-    if evalargspec.varargs:
-        return None
-    else:
-        evalargs = len(evalargspec.args) - 1  # subtract 1 for cls
-        if evalargspec.defaults:
-            # if there are default args then they are optional; the
-            # fewest args will occur when all defaults are used and
-            # the most when none are used (i.e. all args are given)
-            return tuple(range(
-                evalargs - len(evalargspec.defaults), evalargs + 1))
-
-        return evalargs
-
-def _getevalargs_new(eval_):
     parameters = inspect.signature(eval_).parameters.items()
     if [p for n,p in parameters if p.kind == p.VAR_POSITIONAL]:
         return None
